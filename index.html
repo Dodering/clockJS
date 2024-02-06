@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Horloge</title>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        margin: 0;
+        background-color: #f2f2f2;
+    }
+    
+    .digital-clock {
+        font-size: 36px;
+        font-weight: bold;
+        color: #333;
+    }
+    
+    .clock-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .clock {
+        position: relative;
+        width: 300px;
+        height: 300px;
+        border-radius: 50%;
+        border: 14px solid #333;
+        background-color: #fff;
+        box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.1);
+        margin-top: 20px;
+    }
+    
+    .hour,
+    .minute,
+    .second {
+        position: absolute;
+        background-color: #333;
+        transform-origin: 100%;
+        top: 50%;
+        box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.2);
+    }
+    
+    .hour {
+        right: 50%;
+        width: 40%;
+        height: 8px;
+    }
+    
+    .minute {
+        width: 50%;
+        height: 4px;
+    }
+    
+    .second {
+        width: 50%;
+        height: 2px;
+        background-color: #c62828;
+    }
+    
+    .center-dot {
+        position: absolute;
+        width: 12px;
+        height: 12px;
+        background-color: #333;
+        border-radius: 50%;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.2);
+    }
+    
+    .number {
+        position: absolute;
+        font-size: 24px;
+        font-weight: bold;
+        color: #333;
+    }
+    
+    .number.top {
+        top: 10px;
+        left: 50%;
+        transform: translateX(-50%);
+    }
+    
+    .number.right {
+        top: 50%;
+        right: 10px;
+        transform: translateY(-50%);
+    }
+    
+    .number.bottom {
+        bottom: 10px;
+        left: 50%;
+        transform: translateX(-50%);
+    }
+    
+    .number.left {
+        top: 50%;
+        left: 10px;
+        transform: translateY(-50%);
+    }
+    
+    .controls {
+        margin-top: 20px;
+    }
+    
+    .input-field {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 10px;
+    }
+    
+    .button {
+        padding: 10px 20px;
+        font-size: 16px;
+        background-color: #333;
+        color: #fff;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.2);
+    }
+</style>
+</head>
+<body>
+<div class="digital-clock" id="digitalClock"></div>
+<div class="clock-container">
+    <div class="clock">
+        <div class="hour"></div>
+        <div class="minute"></div>
+        <div class="second"></div>
+        <div class="center-dot"></div>
+        <div class="number top">12</div>
+        <div class="number right">3</div>
+        <div class="number bottom">6</div>
+        <div class="number left">9</div>
+    </div>
+    <div class="controls">
+        <div class="input-field">
+            <input type="text" id="timeInput" placeholder="HH:MM:SS" />
+            <button class="button" onclick="setCustomTime()">Appliquer</button>
+            <button class="button" onclick="updateRealTime()">Actualiser</button>
+        </div>
+    </div>
+</div>
+<script>
+let customTime = null;
+
+function setCustomTime() {
+    const timeInput = document.getElementById('timeInput').value;
+    const [hours, minutes, seconds] = timeInput.split(':').map(part => parseInt(part));
+    
+    // Enregistrer le temps personnalisé
+    customTime = {
+        hours: hours,
+        minutes: minutes,
+        seconds: seconds
+    };
+    
+    updateClock(); // Mettre à jour les aiguilles après modification de l'heure
+}
+
+function updateRealTime() {
+    // Réinitialiser le temps personnalisé pour afficher l'heure actuelle
+    customTime = null;
+    // Mettre à jour l'horloge immédiatement
+    updateClock();
+}
+
+function updateClock() {
+    const now = new Date();
+    let hours, minutes, seconds;
+    
+    // Utiliser le temps personnalisé s'il est défini
+    if (customTime !== null) {
+        hours = customTime.hours;
+        minutes = customTime.minutes;
+        seconds = customTime.seconds;
+    } else {
+        hours = now.getHours();
+        minutes = now.getMinutes();
+        seconds = now.getSeconds();
+    }
+    
+    // Convertir heures, minutes et secondes en degrés
+    const hourDegree = (((hours % 12) + (minutes / 60)) * 30) + 90; // 30 degrés par heure, +90 pour aligner avec le 12
+    const minuteDegree = (((minutes % 60) + (seconds / 60)) * 6) + 90; // 6 degrés par minute, +90 pour aligner avec le 12
+    const secondDegree = (seconds % 60) * 6 + 90; // 6 degrés par seconde, +90 pour aligner avec le 12
+    
+    // Appliquer les degrés aux aiguilles
+    document.querySelector('.hour').style.transform = `rotate(${hourDegree}deg)`;
+    document.querySelector('.minute').style.transform = `rotate(${minuteDegree}deg)`;
+    document.querySelector('.second').style.transform = `rotate(${secondDegree}deg)`;
+    
+    // Mettre à jour l'horloge numérique
+    const digitalClock = document.getElementById('digitalClock');
+    digitalClock.textContent = `${formatTime(hours)}:${formatTime(minutes)}:${formatTime(seconds)}`;
+}
+
+// Actualiser l'horloge chaque seconde
+setInterval(updateClock, 1000);
+
+// Formatage des heures, minutes et secondes (ajout de zéro si nécessaire)
+function formatTime(time) {
+    return time < 10 ? `0${time}` : time;
+}
+</script>
+</body>
+</html>
